@@ -64,15 +64,28 @@ correlation_matrix = first_diff.corr()
 def normal_dist(param, data):
     
     # This is the OU Model
-    mu, theta, sigma = param
+    theta, sigma, error = param
     norm = []
+    data= data.reset_index()
     
-    
-    
+    for i in range(len(data)):
+        norm_dist = theta*(data["^DJI"][i]) + error
+        norm.append(norm_dist)
+        
+        
+    temp = []
     # This is the 
     prob_density = np.exp(-0.5*((np.array(norm)/sigma)**2) / (math.sqrt(2) * sigma))
     prob_density = np.log(prob_density)
-    return -prob_density.sum()
+    temp.append(prob_density)
+    return -np.array(temp).sum()
+
+data_to_calibrate =  first_diff["^GSPC"]
+
+opt_val = scipy.optimize.minimize(normal_dist, [2,3,4], bounds=[(0.01,5),(0.01,5),(0.001,1)], args = (first_diff), method= "powell")
+
+
+
 
 # mean = 0
 # sd = 1
