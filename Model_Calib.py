@@ -56,7 +56,8 @@ parse_data = df_query.loc[df_query["Date"] > dt.datetime(2021,1,1)]
 parse_data = parse_data.reset_index().drop(columns = "index").set_index("Date")
 
 
-first_diff = parse_data.diff()
+first_diff = parse_data.diff().dropna()
+# first_diff = first_diff.dropna()
 
 correlation_matrix = first_diff.corr()
 
@@ -64,25 +65,40 @@ correlation_matrix = first_diff.corr()
 def normal_dist(param, data):
     
     # This is the OU Model
-    theta, sigma, error = param
-    norm = []
-    data= data.reset_index()
+    mu, sigma = param
+    # norm = []
+    # # data= data.reset_index()
     
-    for i in range(len(data)):
-        norm_dist = theta*(data["^DJI"][i]) + error
-        norm.append(norm_dist)
+    # for i in range(len(data[0])):
+    #     norm_dist = theta*(data[0][i]) + error
+    #     norm.append(norm_dist)
         
         
-    temp = []
+
     # This is the 
-    prob_density = np.exp(-0.5*((np.array(norm)/sigma)**2) / (math.sqrt(2) * sigma))
-    prob_density = np.log(prob_density)
-    temp.append(prob_density)
-    return -np.array(temp).sum()
+    # prob_density = np.exp(-0.5*((np.array(data)/sigma)**2) / (math.sqrt(2) * sigma))
+    # prob_density = np.log(prob_density)
+    
+    temp=[]
+    
+    for i in data:
+        prob_density = np.exp(((i- mu)**2)/(2 * (sigma**2))) 
+        prob_density = prob_density/ (math.sqrt(2*math.pi) * sigma)
+        prob_density = np.log(prob_density)
+        temp.append(prob_density)
+    return -np.sum(temp)
 
-data_to_calibrate =  first_diff["^GSPC"]
+paramiters = [0,1]
 
-opt_val = scipy.optimize.minimize(normal_dist, [2,3,4], bounds=[(0.01,5),(0.01,5),(0.001,1)], args = (first_diff), method= "powell")
+# result = normal_dist(paramiters, first_diff[usd_cad])
+
+
+
+# data_to_calibrate =  first_diff["^GSPC"]
+
+
+
+opt_val = scipy.optimize.minimize(normal_dist, paramiters, bounds=[(-10,5),(0.0001,5)], args = (first_diff["XHU.TO"]), method= "powell")
 
 
 
