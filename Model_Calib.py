@@ -7,13 +7,16 @@ This is a temporary script file.
 
 import pandas as pd 
 import numpy as np 
-import scipy 
+import scipy as sc
 import statsmodels
 import datetime as dt
 import requests
 import yfinance as yf 
 import os
 import math
+import sys
+import matplotlib.pyplot as plt
+
 
 
 # newfile_loc = "/Users/patrickpascua/Desktop/Financial Model"
@@ -32,18 +35,74 @@ usd_cad = "CAD=X"
 
 data_to_query = ["^GSPC","^DJI","QQQM", "SFY","^GSPTSE","VDY.TO","XHU.TO",cad_usd,usd_cad]
 
-data_query = {}
 
 def query(tickers_to_query):
-    data = yf.download(tickers= tickers_to_query, start=s_date, end=y_date, group_by= "tickers")
-    actual_data = pd.DataFrame(data["Close"])
+    data_query = {}
+    
+    for i in tickers_to_query:
+        data = yf.download(tickers= i, start=s_date, end=y_date, group_by= "tickers")
+        data_query[i] = data.reset_index()
+    # actual_data = pd.DataFrame(data["Close"])
     # actual_data["Volume"] = data["Volume"]
-    return actual_data
+    return data_query
 
-for i in data_to_query:
-    data_query[i] = query(i)
+# for i in data_to_query:
+#     data_query[i] = query(i)
 
-df_query = pd.DataFrame()
+df_query = query(data_to_query)
+
+#%%
+
+
+data_needed =df_query["^DJI"]
+
+# This produce random simulations
+def random_values(data):
+    random_percentages = sc.stats.qmc.LatinHypercube(d = 1)
+    sample = random_percentages.random(n=10000)
+    
+    first_diff = np.array(data["Close"].diff().dropna().reset_index().drop(columns = "index"))
+
+    sigma = np.std(first_diff)
+    mu  = data_needed["Close"][len(data)-1]
+    
+    data = []
+    
+    for i in sample:
+        random_val = sc.stats.norm.ppf(q = i, loc = mu, scale = sigma)
+        data.append(random_val)
+    
+    return np.array(data)
+
+
+temp = random_values(data_needed)
+
+
+first_diff = np.array(data_needed["Close"].diff().dropna().reset_index().drop(columns = "index"))
+
+
+# This creates the histograpm
+def graphing(data,rand_data):
+    
+    sigma = np.std(first_diff)
+    mu  = data["Close"][len(data_needed)-1]
+    
+    count,bins,ignored = plt.hist(rand_data, 15, density = True)
+    plt.plot(bins ,1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (bins - mu)**2 / (2 * sigma**2) ),linewidth=2, color='r' )
+    return plt.show()
+
+graph = graphing(data_needed, temp)
+
+print(sc.stats.kurtosis(temp)+3)
+print(sc.stats.skew(temp))
+
+
+
+
+
+
+
+sys.exit()
 
 for i in range(len(data_to_query)):
     df_query[data_to_query[i]] = data_query[data_to_query[i]]
