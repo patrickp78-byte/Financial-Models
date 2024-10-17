@@ -16,6 +16,8 @@ import os
 import math
 import sys
 import matplotlib.pyplot as plt
+import csv
+import openpyxl
 
 
 
@@ -42,6 +44,7 @@ def query(tickers_to_query):
     for i in tickers_to_query:
         data = yf.download(tickers= i, start=s_date, end=y_date, group_by= "tickers")
         data_query[i] = data.reset_index()
+ 
     # actual_data = pd.DataFrame(data["Close"])
     # actual_data["Volume"] = data["Volume"]
     return data_query
@@ -50,6 +53,36 @@ def query(tickers_to_query):
 #     data_query[i] = query(i)
 
 df_query = query(data_to_query)
+
+csv_filepath = "/Users/patrickpascua/Documents/GitHub/Financial-Models"
+file_name = "/Data.xlsx"
+complete_name = [csv_filepath,file_name]
+
+load = "".join(complete_name)
+
+
+def creating_new_sheet(path,sheet_name):
+    workbook = openpyxl.load_workbook(path)
+    new_sheet = workbook.create_sheet(title=sheet_name)
+    workbook.save(path)
+    
+for i in data_to_query:
+    new_sheet = creating_new_sheet(load,i)
+# df_query["QQQM"].to_excel(load, sheet_name = "QQQM", index=False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+sys.exit()
 
 #%%
 
