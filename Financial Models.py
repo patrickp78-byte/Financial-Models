@@ -17,8 +17,8 @@ import pickle
 
 
 start_date = "2020-01-31"
-end_date = "2023-12-31"
-tickers= ["HXQ.TO", "VDY.TO", "XHU.TO", "ZSP.TO"]
+end_date = "2024-11-13"
+tickers= ["QQQ", "VDY.TO", "XHU.TO", "ZSP.TO"]
 
 data_query = yf.download(tickers = tickers, start = start_date, end= end_date, group_by= "tickers")
 
@@ -33,4 +33,5 @@ for i in tickers:
     price_dict.update({i:ticker_data.reset_index()})
     
 
-temp_price = price_dict["HXQ.TO"]
+temp_price = price_dict["QQQ"].dropna().reset_index().drop("index",axis="columns")
+data = temp_price["Close"]
