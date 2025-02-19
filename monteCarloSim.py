@@ -52,7 +52,7 @@ fig, ax = plt.subplots()
 ax.hist(data["gen_val"], bins=15)
 ax.hist(filtered_data, bins=20)
 
-plt.show()
+plt.show(fig)
 
 
 

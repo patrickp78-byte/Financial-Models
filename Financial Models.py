@@ -13,25 +13,71 @@ import matplotlib.pyplot as plt
 import datetime as dt 
 import sys
 import streamlit as st
-import pickle
+import arch 
+
+end_date = dt.datetime.today()
+start_date = end_date - dt.timedelta(days = 90)
+
+tickers= ["QQQM","ZDV.TO"]
+
+data_query = yf.download(tickers = tickers, start = start_date, end= end_date)
+
+data  = data_query.copy()
 
 
-start_date = "2020-01-31"
-end_date = "2024-11-13"
-tickers= ["QQQ", "VDY.TO", "XHU.TO", "ZSP.TO"]
+prices = data["Close"].dropna()
+diff = prices["QQQM"].diff().dropna()
+diff = diff.reset_index()
+delta = np.array(diff["QQQM"])
 
-data_query = yf.download(tickers = tickers, start = start_date, end= end_date, group_by= "tickers")
+ave = np.average(delta)
+standard_dev = np.std(delta)**(1/2)
+alpha = 0 
+beta = 0
 
-query = data_query.copy()
+param= [ave,standard_dev,alpha,beta]
+print(param)
 
-#%%
-
-price_dict = {}
-
-for i in tickers:
-    ticker_data = query[i]
-    price_dict.update({i:ticker_data.reset_index()})
+def garch(params):
+    mean,omega, alpha, beta = params[0],params[1],params[2],params[3]
+    long_run = np.sqrt(omega / max((1 - alpha - beta),1e-6))
+    resid = delta - mean
+    resid_sqr = abs(resid)
+    conditional = np.zeros(len(diff))
+    conditional[0] = long_run
+    for i in range(1,len(diff)):
+        calc = np.sqrt(omega + alpha * resid_sqr[i - 1] + beta * conditional[i - 1] ** 2)
+        conditional[i] =calc
+    likelihood = 1/((2*np.pi)**(1/2)*(conditional))*np.exp(-resid_sqr**2/(2*conditional**2))
+    log_like= np.sum(np.log(likelihood)+1e-10)
+    return -log_like
     
 
-temp_price = price_dict["QQQ"].dropna().reset_index().drop("index",axis="columns")
-data = temp_price["Close"]
+data = garch(param);print(data)
+
+bounds = [
+    (1e-6, None),  # mean (unbounded)
+    (1e-6, None),  # omega > 0
+    (0, 1),        # 0 ≤ alpha ≤ 1
+    (0, 1)         # 0 ≤ beta ≤ 1
+]
+
+constains = [{"type":"ineq","fun": lambda param: 0.999-(param[2] + param[3])}]
+
+
+res = sp.optimize.minimize(garch,param,method = "SLSQP" ,
+                           bounds = bounds, 
+                           constraints =constains, 
+                           options={"ftol": 1e-10, "maxiter": 1000} )
+
+params = res.x
+print(params)
+print(-float(res.fun))
+
+
+garch_model = arch.arch_model(delta, vol="Garch", p=1,q=1, mean = "Constant", dist ="normal")
+garch_fit = garch_model.fit(disp = "off")
+print(garch_fit.summary())
+
+    
+    
