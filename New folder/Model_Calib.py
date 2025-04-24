@@ -7,7 +7,7 @@ This is a temporary script file.
 
 import pandas as pd 
 import numpy as np 
-import scipy 
+import scipy as sc
 import statsmodels
 import datetime as dt
 import requests
@@ -15,6 +15,13 @@ import yfinance as yf
 import os
 import math
 import sys
+<<<<<<< HEAD
+=======
+import matplotlib.pyplot as plt
+import csv
+import openpyxl
+
+>>>>>>> 6817d952ce0a137cd7c12e5bec3202ca1cb1bdec
 
 
 # newfile_loc = "/Users/patrickpascua/Desktop/Financial Model"
@@ -33,9 +40,9 @@ usd_cad = "CAD=X"
 
 data_to_query = ["^GSPC","^DJI","QQQ", "SFY","^GSPTSE","VDY.TO","XHU.TO",cad_usd,usd_cad,"SCHD"]
 
-data_query = {}
 
 def query(tickers_to_query):
+<<<<<<< HEAD
     data = yf.download(tickers= tickers_to_query, start=s_date, end=y_date, group_by= "tickers",interval= "1wk")
     # actual_data = pd.DataFrame(data["Close"])
     # actual_data["Volume"] = data["Volume"]
@@ -156,11 +163,105 @@ trial = garch_log_likelihood([mean,var,0,0], data2)
 
 
 sys.exit()
+=======
+    data_query = {}
+    
+    for i in tickers_to_query:
+        data = yf.download(tickers= i, start=s_date, end=y_date, group_by= "tickers")
+        data_query[i] = data.reset_index()
+ 
+    # actual_data = pd.DataFrame(data["Close"])
+    # actual_data["Volume"] = data["Volume"]
+    return data_query
+>>>>>>> 6817d952ce0a137cd7c12e5bec3202ca1cb1bdec
 
+# for i in data_to_query:
+#     data_query[i] = query(i)
+
+df_query = query(data_to_query)
+
+csv_filepath = "/Users/patrickpascua/Documents/GitHub/Financial-Models"
+file_name = "/Data.xlsx"
+complete_name = [csv_filepath,file_name]
+
+load = "".join(complete_name)
+
+
+def creating_new_sheet(path,sheet_name):
+    workbook = openpyxl.load_workbook(path)
+    new_sheet = workbook.create_sheet(title=sheet_name)
+    workbook.save(path)
+    
 for i in data_to_query:
-    data_query[i] = query(i)
+    new_sheet = creating_new_sheet(load,i)
+# df_query["QQQM"].to_excel(load, sheet_name = "QQQM", index=False)
 
-df_query = pd.DataFrame()
+
+
+
+
+
+
+
+
+
+
+
+
+sys.exit()
+
+#%%
+
+
+data_needed =df_query["^DJI"]
+
+# This produce random simulations
+def random_values(data):
+    random_percentages = sc.stats.qmc.LatinHypercube(d = 1)
+    sample = random_percentages.random(n=10000)
+    
+    first_diff = np.array(data["Close"].diff().dropna().reset_index().drop(columns = "index"))
+
+    sigma = np.std(first_diff)
+    mu  = data_needed["Close"][len(data)-1]
+    
+    data = []
+    
+    for i in sample:
+        random_val = sc.stats.norm.ppf(q = i, loc = mu, scale = sigma)
+        data.append(random_val)
+    
+    return np.array(data)
+
+
+temp = random_values(data_needed)
+
+
+first_diff = np.array(data_needed["Close"].diff().dropna().reset_index().drop(columns = "index"))
+
+
+# This creates the histograpm
+def graphing(data,rand_data):
+    
+    sigma = np.std(first_diff)
+    mu  = data["Close"][len(data_needed)-1]
+    
+    count,bins,ignored = plt.hist(rand_data, 15, density = True)
+    plt.plot(bins ,1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (bins - mu)**2 / (2 * sigma**2) ),linewidth=2, color='r' )
+    return plt.show()
+
+graph = graphing(data_needed, temp)
+
+print(sc.stats.kurtosis(temp)+3)
+print(sc.stats.skew(temp))
+
+
+
+
+
+
+
+sys.exit()
 
 for i in range(len(data_to_query)):
     df_query[data_to_query[i]] = data_query[data_to_query[i]]
