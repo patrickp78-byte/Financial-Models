@@ -25,12 +25,12 @@ os.chdir(script_dir)
 print(f'new_dir: { os.getcwd() }')
 
 
-
+#"^CDNX"
 
 # Data query
 tickers1 = ["HXQ.TO","VDY.TO","XHU.TO","ZDV.TO","ZDY.TO","ZGQ.TO","ZSP.TO",\
              "^GSPC", "^DJI", "^NDX","^IXIC","^RUT","^VIX",\
-                "^GSPTSE","^CDNX", \
+                "^GSPTSE", \
                     "LQD","XCD.TO", \
            "CADUSD=X", "USDCAD=X", \
          ]
@@ -67,7 +67,7 @@ international_bond_etfs = [
 # Combined Master List (optional)
 tickers = bond_etfs + treasury_yield_indices + international_bond_etfs +tickers1
 
-d_today =dt.date.today()
+d_today =dt.date.today() # Date Today
 
 def yfinance_query(tick, s_date,l_date):
     dictionary = {}
@@ -101,7 +101,6 @@ to_pickle(query_data)
 # This only query the latest data
 import pickle
 
-
 if os.path.exists('full_data.pkl'):
     print("File exists.")
     
@@ -112,11 +111,21 @@ if os.path.exists('full_data.pkl'):
     for i in tickers:
         dates[f'{i}']=  f_data[f'{i}']['Close']
     dates = dates.reset_index()
-    last_date_query = dates.loc[len(dates)-1,"Date"]
+    s_date_query = dates.loc[len(dates)-1,"Date"] # This is the last date from pickle file
+    
+
+    new_data= yfinance_query(tickers, s_date_query, d_today)
+    
+    for i in tickers:
+        temp = new_data[i].reset_index()
+        temp = temp.iloc[1:].set_index("Date")
+        f_data[f'{i}'] = pd.concat([f_data[f'{i}'], temp], ignore_index=False)
+    
+    
+    to_pickle(f_data)
+    print(f'Update Complete')
     
 else:
     print("File does not exist.")
-
-
 
 
