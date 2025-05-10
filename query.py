@@ -14,7 +14,6 @@ import pickle
 import sys
 import os
 
-
 #Current working dir
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
@@ -107,21 +106,14 @@ if os.path.exists('full_data.pkl'):
     with open('full_data.pkl', 'rb') as f:
         f_data = pickle.load(f)
 
-    dates = pd.DataFrame()
     for i in tickers:
-        dates[f'{i}']=  f_data[f'{i}']['Close']
-    dates = dates.reset_index()
-    s_date_query = dates.loc[len(dates)-1,"Date"] # This is the last date from pickle file
-    
-
-    new_data= yfinance_query(tickers, s_date_query, d_today)
-    
-    for i in tickers:
-        temp = new_data[i].reset_index()
-        temp = temp.iloc[1:].set_index("Date")
-        f_data[f'{i}'] = pd.concat([f_data[f'{i}'], temp], ignore_index=False)
-    
-    
+        date = f_data[f'{i}'].reset_index()
+        last_date= date["Date"]
+        last_date = last_date.iloc[-1]
+        new_data= yf.download(i, start = last_date, end = d_today )
+        new_data = new_data.reset_index()
+        new_data = new_data.iloc[1:].set_index("Date")
+        f_data[f'{i}'] = pd.concat([f_data[f'{i}'], new_data], ignore_index=False)
     to_pickle(f_data)
     print(f'Update Complete')
     
