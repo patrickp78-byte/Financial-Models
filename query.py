@@ -66,7 +66,7 @@ international_bond_etfs = [
 # Combined Master List (optional)
 tickers = bond_etfs + treasury_yield_indices + international_bond_etfs +tickers1
 
-d_today =dt.date.today() # Date Today
+ # Date Today
 
 def yfinance_query(tick, s_date,l_date):
     dictionary = {}
@@ -87,37 +87,54 @@ def to_pickle(q_data):
         pickle.dump(q_data, b)
     print(f'Data_Save.')
 
-#%%
-# This blocks query large amount of data from yfinance and stores it
-
-s_date = dt.date(1980,1,1)
-query_data = yfinance_query(tickers, s_date,d_today)
-to_pickle(query_data)
 
 
 #%%
 
 # This only query the latest data
-import pickle
 
-if os.path.exists('full_data.pkl'):
-    print("File exists.")
+
+def query_data(file_name, to_do):
     
-    with open('full_data.pkl', 'rb') as f:
-        f_data = pickle.load(f)
-
-    for i in tickers:
-        date = f_data[f'{i}'].reset_index()
-        last_date= date["Date"]
-        last_date = last_date.iloc[-1]
-        new_data= yf.download(i, start = last_date, end = d_today )
-        new_data = new_data.reset_index()
-        new_data = new_data.iloc[1:].set_index("Date")
-        f_data[f'{i}'] = pd.concat([f_data[f'{i}'], new_data], ignore_index=False)
-    to_pickle(f_data)
-    print(f'Update Complete')
+    d_today =dt.date.today()
     
-else:
-    print("File does not exist.")
+    if to_do == "update":
+        if os.path.exists(f'{file_name}.pkl'):
+            print("File exists.")
+            
+            with open('full_data.pkl', 'rb') as f:
+                f_data = pickle.load(f)
+        
+            for i in tickers:
+                date = f_data[f'{i}'].reset_index()
+                last_date= date["Date"]
+                last_date = last_date.iloc[-1]
+                new_data= yf.download(i, start = last_date, end = d_today )
+                new_data = new_data.reset_index()
+                new_data = new_data.iloc[1:].set_index("Date")
+                f_data[f'{i}'] = pd.concat([f_data[f'{i}'], new_data], ignore_index=False)
+                data = to_pickle(f_data)
+            return f_data 
+        else:
+            return print(f'file does not exist.')
+    else:
+        s_date = dt.date(1980,1,1)
+        query_data = yfinance_query(tickers, s_date,d_today)
+        data = to_pickle(query_data)
+        with open('full_data.pkl', 'rb') as f:
+            f_data = pickle.load(f)
+        return f_data
+
+query = query_data('full_data', to_do=None)
 
 
+#%%
+
+#opening pickle file
+
+def opening_pickle(file_name):
+    with open (f'{file_name}.pkl', 'rb') as f:
+        query_data = pickle.load(f)
+    return query_data
+
+q_data = opening_pickle('full_data')
