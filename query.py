@@ -138,3 +138,5 @@ def opening_pickle(file_name):
     return query_data
 
 q_data = opening_pickle('full_data')
+
+######## iam very very cool
