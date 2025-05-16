@@ -139,5 +139,3 @@ def opening_pickle(file_name):
 
 q_data = opening_pickle('full_data')
 
-######## iam very very cool 
-### this is a trial
