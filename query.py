@@ -113,7 +113,7 @@ def query_data(file_name, to_do):
                 new_data = new_data.reset_index()
                 new_data = new_data.iloc[1:].set_index("Date")
                 f_data[f'{i}'] = pd.concat([f_data[f'{i}'], new_data], ignore_index=False)
-                data = to_pickle(f_data)
+                data = to_pickle(f_data) # This saves it to a pickle
             return f_data 
         else:
             return print(f'file does not exist.')
@@ -125,7 +125,7 @@ def query_data(file_name, to_do):
             f_data = pickle.load(f)
         return f_data
 
-query = query_data('full_data', to_do=None)
+query = query_data('full_data', to_do='update')
 
 
 #%%
@@ -133,9 +133,13 @@ query = query_data('full_data', to_do=None)
 #opening pickle file
 
 def opening_pickle(file_name):
-    with open (f'{file_name}.pkl', 'rb') as f:
+    with open (f'{file_name}', 'rb') as f:
         query_data = pickle.load(f)
     return query_data
 
-q_data = opening_pickle('full_data')
+b_up=  f'Back Up Data//full_data_back_up_{dt.date.today()}.pkl'
+a_data = f'full_data.pkl'
+
+url= b_up
+q_data = opening_pickle(url)
 
