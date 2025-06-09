@@ -189,12 +189,13 @@ mle_param_res = pd.DataFrame([mle_omega,mle_alpha,mle_beta], index = ["mle_omega
 
 # Graphs the results
 result_mle = garch([mle_omega,mle_alpha,mle_beta], d_query, 'CONDITIONAL_Vol')
-graph = [((d_query**2)**(1/2), 'actual vol'),(result_mle,'forcast'),(df['lib_condvol'], 'lib result')]
+graph = [((d_query**2)**(1/2), 'actual vol'),(df['lib_condvol'], 'lib result'),(result_mle,'forcast')]
 graphing(graph, "Conditional vol")
 
 #%%
 
 #EGARCH Model
 
+# THis is just a test for Git LAb
     
     
